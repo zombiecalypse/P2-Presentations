@@ -2,6 +2,7 @@
 \usepackage[utf8x]{inputenc}
 \usepackage{amsmath}
 \usepackage{amsfonts}
+\usepackage{listings}
 \usepackage{ucs}
 \author{Aaron Karper}
 \title{Documentation (Javadoc)}
@@ -10,10 +11,120 @@
 \frame{\titlepage}
 \frame{\frametitle{Contents}\tableofcontents}
 \section{Why write JavaDoc}
-\frame{\frametitle{}
-
+\frame{\frametitle{Less talk, more code?}
+\begin{itemize}
+	\item Inform other coders how to use your code without having to read it.
+	\item Understanding your code \begin{itemize}
+		\item Know what the intention is.
+		\item Know what the code does and does not need to handle.
+	\end{itemize}
+	\item Specification \begin{itemize}
+		\item Reminder to yourself what you need to do.
+		\item Makes you think about your responsibilities.
+	\end{itemize}
+  \item Only necessary for public interface.
+\end{itemize}
 }
 \section{Guidelines}
+\frame{\frametitle{What is Good Documentation?}
+\begin{itemize}
+	\item Concise
+	  \begin{itemize}
+		\item Do {\em not} repeat what the code says, don't explain {\em how}.
+		\item No fillers -- {\em This method...} is not necessary.
+		\item Make the first sentence count -- JavaDoc assumes it to be the
+		  summary.
+		\item Link to other documentation -- with {\tt @see} or {\tt @link} 
+	  \end{itemize}
+	\item Complete
+	  \begin{itemize}
+		\item Responsibilities (pre- \& post-conditions)
+		\item Corner cases. e.g. {\tt null}? negative {\tt int}s?
+	  \end{itemize}
+\end{itemize}
+}
+\frame{\frametitle{Class Comments}
+\begin{itemize}
+	\item What is the class responsible for? What information does it hold, 
+	  what things can it do?
+	\item Who uses this class? Does it for example generate itself?
+	\item Does this class need special treatment, for example a lifetime?
+\end{itemize}
+}
 
+\frame{\frametitle{Method Comments}
+\begin{itemize}
+	\item Use {\tt @param} to
+	  \begin{itemize}
+	  	\item Define constraints
+		\item What are your preconditions?
+	  \end{itemize}
+	\item Use {\tt @return} to
+	  \begin{itemize}
+	  	\item Offer more specific information.
+		\item What are your postconditions?
+	  \end{itemize}
+\end{itemize}
+}
 \section{Examples}
+\lstset{language=Java, breaklines=true, basicstyle=\scriptsize}
+\frame{\frametitle{What not to do}
+{\small
+\lstinputlisting{jdoc_example_bad_0.java}}
+}
+\frame{\frametitle{What not to do}
+{\small
+\lstset{language=Java, breaklines=true}
+\lstinputlisting{jdoc_example_bad_1.java}}
+}
+\frame{\frametitle{What not to do}
+{\small
+\lstset{language=Java, breaklines=true}
+\lstinputlisting{jdoc_example_bad_2.java}}
+}
+\frame{\frametitle{What not to do}
+{\small
+\lstset{language=Java, breaklines=true}
+\lstinputlisting{jdoc_example_bad_3.java}}
+}
+\frame{\frametitle{How to do it better}
+{\small
+\lstset{language=Java, breaklines=true}
+\lstinputlisting{jdoc_example_bad_0.java}}
+}
+\frame{\frametitle{How to do it better}
+{\small
+\lstset{language=Java, breaklines=true}
+\lstinputlisting{jdoc_example_good_0.java}}
+}
+\frame{\frametitle{How to do it better}
+{\small
+\lstset{language=Java, breaklines=true}
+\lstinputlisting{jdoc_example_bad_1.java}}
+}
+\frame{\frametitle{How to do it better}
+{\small
+\lstset{language=Java, breaklines=true}
+\lstinputlisting{jdoc_example_good_1.java}}
+}
+\frame{\frametitle{How to do it better}
+{\small
+\lstset{language=Java, breaklines=true}
+\lstinputlisting{jdoc_example_bad_2.java}}
+}
+\frame{\frametitle{How to do it better}
+{\small
+\lstset{language=Java, breaklines=true}
+\lstinputlisting{jdoc_example_good_2.java}}
+}
+\frame{\frametitle{How to do it better}
+{\small
+\lstset{language=Java, breaklines=true}
+\lstinputlisting{jdoc_example_bad_3.java}}
+}
+\frame{\frametitle{How to do it better}
+{\small
+\lstset{language=Java, breaklines=true}
+\lstinputlisting{jdoc_example_good_3.java}}
+}
 \end{document}
