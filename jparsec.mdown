@@ -17,16 +17,17 @@ application ([full code](examples/TuringParser)).
 ## What is jParsec?
 
 jParsec is basically a bunch of handy parsers that already know how to parse
-certain things (like a identifier for example). But if that was all, we could
+certain things (like identifiers for example). But if that was all, we could
 never build a new language to parse, so there are also ways to combinate them.
-Further it is not only interesting to know, if a string is a valid program,
+Furthermore it is not only interesting to know, if a string is a valid program,
 but ideally, we'd like to have a handy representation of it too, so jParsec
 allows that as well.
 
 jParsec can
+
 - Parse common things like integers, identifiers (an alphanumeric name without
   whitespaces in between), ...
-- Combine two or more parsers to a new one. For example, we could parse an
+- Combine two or more parsers into a new one. For example, we could parse an
   integer _or_ an identifier.
 - Process the parsed expressions to new types.
 
@@ -36,7 +37,7 @@ So for fun, lets invent a programming language: the [Turing
 Machine](http://introcs.cs.princeton.edu/java/74turing/)! Ok, not exactly
 novel, but I have yet to see a file type for it...
 
-A Turing Machine description needs basically
+A Turing Machine description needs:
 
 - A start state
 - Some end states
@@ -48,9 +49,10 @@ A Turing Machine description needs basically
   - in what direction the head moves.
 
 So I propose the following:
-- `:end` designates an end state called "end"
-- `>start` designates a start state called "start"
-- `a t1 => b t2 L` designates a transition that assumes that the machine is in
+
+- `:` is used for tagging end states, for example `:end` designates an end state called "end"
+- `>` is used for tagging the start state, for example `>start` designates a start state called "start"
+- `=>` is used for tagging transitions. For example `a t1 => b t2 L` designates a transition that assumes that the machine is in
   the state `a`, reads the character `t1` and then outputs `t2` and transfers
   into the state `b`, moving the read/write-head to the left (`N` would say
   that the head does not move and `R` would be right).
@@ -67,7 +69,7 @@ For example
     odd x  => oddEnd x N
 
 would be a turing machine that answers whether a tape has an even or odd
-number of "o" characters on it.
+number of "o" characters on it. We assume the "x" marks the end of the word.
 
 We could of course use RegEx to parse this, but where would be the fun in
 that?
@@ -93,7 +95,7 @@ mode and see an alphanumeric character like in an identifier we move to
 
 *Stop right there!*
 
-Beginner programmers often start out thinking imperatively - to this, than do
+Beginner programmers often start out thinking imperatively - do this, then do
 that - but I think sooner or later one has to find out that it is often much
 easier to start with a big problem and [break it down bit by bit][decomp].
 [decomp]: http://en.wikipedia.org/wiki/Decomposition_(computer_science)
@@ -117,6 +119,7 @@ expressions separated by newlines.
     			.sepBy(Scanners.string("\n"));
 
 here
+
 - `expression()` will be a parser for a single expression, but I didn't write
   it yet, but ignore that for a while.
 - `expression().sepBy(...)` means that we get a bunch of expressions separated
@@ -162,7 +165,7 @@ this also means, that there are lots of other examples of `map` later on.
 
 ## All Expressions are not alike
 
-Until now, we delayed to think, what `expression()` is. An expression is
+Until now, we delayed to think about what `expression()` is. An expression is
 either
 
 - an end state
@@ -179,7 +182,7 @@ Here is where the combinators of jParsec come into play, namely the
     	return Parsers.or(endstate(), startstate(), transition());
     }
  
-When parsing, you will get the result of the first parser that is can act on
+When parsing, you will get the result of the first parser that can act on
 your string.
 
 Question now is, how do we parse an `endstate()`? It's quite easy, we *first
@@ -209,7 +212,7 @@ As an exercise, you can implement the `startstate()` method yourself.
 
 Transition is a bit more difficult, because we have something like `a b => c d
 L` and need to remember `a`, `b`, `c`, `d`, and the direction as well. Again,
-let us split it up a little. on the left hand site, we basically have the
+let us split it up a little. On the left hand site, we basically have the
 current state of the read head and on the right side we have the output. In
 the middle we have whitespaces and `"=>"`.
 
@@ -267,18 +270,21 @@ You can try to write the `output()` yourself.
 ## Summary
 
 You can use primitive parsers such as
+
 - `Scanner.IDENTIFIER`
 - `Scanner.WHITESPACES`
 - `Scanner.INTEGER`
 - ...
 
-to parse common thing.
+to parse common things.
 
 You can combine Parsers by
+
 - `Parsers.or`
 - `Parsers.sequence`
 
 or extend a single parser with
+
 - `Parser<A>.many()`
 
 You can transform
