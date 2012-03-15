@@ -210,5 +210,77 @@ As an exercise, you can implement the `startstate()` method yourself.
 Transition is a bit more difficult, because we have something like `a b => c d
 L` and need to remember `a`, `b`, `c`, `d`, and the direction as well. Again,
 let us split it up a little. on the left hand site, we basically have the
-current state of the read head and on the right side we have the output. in
-the middle we have whitespaces and `"=>"`
+current state of the read head and on the right side we have the output. In
+the middle we have whitespaces and `"=>"`.
+
+So lets first take a look at `readhead()`, which defines the lefthand side of
+the transition (in the example it would be `a b`).
+
+*In jParsec, you can use `Parsers.tuple(...)` to remember the return values of
+all subparsers.*
+
+It will also be important to acknowledge the whitespaces between the names,
+so...
+
+*The `Parser<A>.many()` method gives a list of many matches of `Parser<A>`
+(possibly none at all), `Parser<A>.many1()` ensures, that `Parser<A>` has
+matched at least once.*
+
+    private static Parser<ReadHead> readhead() {
+    	return Parsers
+    			.tuple(Scanners.IDENTIFIER, Scanners.WHITESPACES.many1(), Scanners.IDENTIFIER)
+    			.map(new org.codehaus.jparsec.functors.Map<Tuple3<String, List<Void>, String>, ReadHead>() {
+    				public ReadHead map(Tuple3<String, List<Void>, String> arg0) {
+    					return new ReadHead(arg0.a, arg0.c);
+    				}
+    			});
+    }
+
+Lets read that: "a readhead is an identifier, then some whitespaces (at least
+one), and then another identifier". Here I used tuple, but also caught the
+whitespaces in the middle. You notice, that they give a `List<Void>`, so
+basically nothing at all. The different parts of the match in `Tuple[N]` are
+called `.a`, `.b`, ..., so `ReadHead(arg0.a, arg0.c)` means "take the first
+and third match, ignore the middle (which is whitespaces anyway).
+
+Now it should come as little surprise, that we can implement `transition()` by
+
+
+    private static Parser<Transition> transition() {
+    	return Parsers.tuple(
+    				readhead(),
+    				Scanners.WHITESPACES.many1(), 
+    				Scanners.string("=>"),
+    				Scanners.WHITESPACES.many1(), 
+    				output())
+    			.map(new org.codehaus.jparsec.functors.Map<Tuple5<ReadHead, List<Void>,Void,List<Void>, Output>, Transition>() {
+    		public Transition map(Tuple5<ReadHead, List<Void>,Void,List<Void>, Output> arg0) {
+    			return new Transition(arg0.a, arg0.e);
+    		}
+    	});
+    }
+
+except maybe that `Scanners.string` does not return anything.
+
+You can try to write the `output()` yourself.
+
+## Summary
+
+You can use primitive parsers such as
+- `Scanner.IDENTIFIER`
+- `Scanner.WHITESPACES`
+- `Scanner.INTEGER`
+- ...
+
+to parse common thing.
+
+You can combine Parsers by
+- `Parsers.or`
+- `Parsers.sequence`
+
+or extend a single parser with
+- `Parser<A>.many()`
+
+You can transform
+
+- a `Parser<A>` to `Parser<B>` by `Parser<A>.map(new Map<A,B>() { /* transform an A to a B */ })`

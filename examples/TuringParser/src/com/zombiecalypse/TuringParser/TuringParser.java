@@ -82,7 +82,6 @@ public class TuringParser {
 	
 	
 	private static Parser<Transition> transition() {
-		Pair<ReadHead, Output> t;
 		return Parsers.tuple(readhead(),Scanners.WHITESPACES.many1(), Scanners.string("=>"),Scanners.WHITESPACES.many1(), output()).map(new org.codehaus.jparsec.functors.Map<Tuple5<ReadHead, List<Void>,Void,List<Void>, Output>, Transition>() {
 			@Override
 			public Transition map(Tuple5<ReadHead, List<Void>,Void,List<Void>, Output> arg0) {
