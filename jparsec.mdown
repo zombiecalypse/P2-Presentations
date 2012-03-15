@@ -48,6 +48,7 @@ A Turing Machine description needs:
   - in what direction the head moves.
 
 So I propose the following:
+
 - `:` is used for tagging end states, for example `:end` designates an end state called "end"
 - `>` is used for tagging the start state, for example `>start` designates a start state called "start"
 - `=>` is used for tagging transitions. For example `a t1 => b t2 L` designates a transition that assumes that the machine is in
