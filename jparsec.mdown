@@ -170,7 +170,7 @@ either
 - or a transition
 
 We could of course make the difference in the `map` function, but that would
-be more than annoying, we'd much rather have some way to express that "either...or"...
+be more than annoying, we'd much rather have some way to express that "either...or..."
 
 Here is where the combinators of jParsec come into play, namely the
 `Parsers.or` combinator. The informal description directly translates to
@@ -277,6 +277,7 @@ to parse common thing.
 You can combine Parsers by
 - `Parsers.or`
 - `Parsers.sequence`
+- `Parsers.tuple`
 
 or extend a single parser with
 - `Parser<A>.many()`
