@@ -25,12 +25,9 @@ public class TuringParser {
 			"a t => b t L";
 	static String newline = System.getProperty("line.separator");
 	
-	public static void main(String[] args) throws FileNotFoundException {
+	public static void main(String[] args) {
 		Parser<TuringMachine> parser = generate();
 		
-		// if (args.length == 0) throw new RuntimeException("Too few arguments");
-		
-		//String readFile = readFile(args[0]);
 		TuringMachine tm = parser.parse(example);
 		tm.run();
 		System.out.println(tm);
