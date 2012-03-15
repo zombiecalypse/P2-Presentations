@@ -1,0 +1,15 @@
+# jParsec in a Nutshell
+
+Languages obviously play a central role in computing. We express our ideas and
+our algorithms in programming languages and all of them operate on data, that
+too is often in a kind of language. 
+
+So it comes to no surprise that processing of a language is an important task.
+Most people probably know RegEx (if not, read about them!), but most languages
+[can not be parsed this way](http://stackoverflow.com/a/1732454), so one comes
+to look for other tools.
+
+One such tool is [jParsec](jparsec.codehaus.org), which is a port of the
+excellent [Parsec](http://www.haskell.org/haskellwiki/Parsec) library for
+Java. In this article, I'll show a [small example
+application](examples/TuringParser)
