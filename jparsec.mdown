@@ -24,6 +24,7 @@ but ideally, we'd like to have a handy representation of it too, so jParsec
 allows that as well.
 
 jParsec can
+
 - Parse common things like integers, identifiers (an alphanumeric name without
   whitespaces in between), ...
 - Combine two or more parsers into a new one. For example, we could parse an
@@ -118,6 +119,7 @@ expressions separated by newlines.
     			.sepBy(Scanners.string("\n"));
 
 here
+
 - `expression()` will be a parser for a single expression, but I didn't write
   it yet, but ignore that for a while.
 - `expression().sepBy(...)` means that we get a bunch of expressions separated
@@ -268,6 +270,7 @@ You can try to write the `output()` yourself.
 ## Summary
 
 You can use primitive parsers such as
+
 - `Scanner.IDENTIFIER`
 - `Scanner.WHITESPACES`
 - `Scanner.INTEGER`
@@ -276,10 +279,12 @@ You can use primitive parsers such as
 to parse common things.
 
 You can combine Parsers by
+
 - `Parsers.or`
 - `Parsers.sequence`
 
 or extend a single parser with
+
 - `Parser<A>.many()`
 
 You can transform
