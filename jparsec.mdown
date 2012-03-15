@@ -284,3 +284,6 @@ or extend a single parser with
 You can transform
 
 - a `Parser<A>` to `Parser<B>` by `Parser<A>.map(new Map<A,B>() { /* transform an A to a B */ })`
+
+The full code is
+[here](examples/TuringParser/src/com/zombiecalypse/TuringParser/TuringParser.java)
