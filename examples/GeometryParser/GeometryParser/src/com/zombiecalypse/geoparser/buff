@@ -1,0 +1,106 @@
+	
+	// ROTATE
+	@Test
+	public void rotateTest() {
+		assertThat(rotateParser().parse("rotate 60"), is(new RotateExpression(60)));
+	}
+	
+	private Parser<RotateExpression> rotateParser() {
+		return Parsers.sequence(Scanners.string("rotate"), whiteSpaceInteger()).map(new org.codehaus.jparsec.functors.Map<Integer, Expression.RotateExpression>() {
+			@Override
+			public RotateExpression map(Integer from) {
+				return new RotateExpression(from);
+			}
+		});
+	}
+	
+	private Parser<Integer> whiteSpaceInteger() {
+		return Parsers.sequence(Scanners.WHITESPACES, Scanners.INTEGER).map(new org.codehaus.jparsec.functors.Map<String, Integer>() {
+			@Override
+			public Integer map(String arg0) {
+				return Integer.parseInt(arg0);
+			}
+		});
+	}
+
+	
+	// TRANSLATE
+	@Test
+	public void translateTest() {
+		assertThat(translateParser().parse("translate 1 1"), is(new TranslateExpression(1,1)));
+	}
+	
+	private Parser<Expression.TranslateExpression> translateParser() {
+		return Parsers.sequence(Scanners.string("translate"), whiteSpaceInteger().times(2)).map(new org.codehaus.jparsec.functors.Map<List<Integer>, Expression.TranslateExpression>() {
+			@Override
+			public TranslateExpression map(List<Integer> from) {
+				return new TranslateExpression(from.get(0), from.get(1));
+			}
+		});
+	}
+	
+	
+	
+	// RECT
+	@Test
+	public void rectTest() {
+		assertThat(rectParser().parse("rect 0 0 1 1"), is(new RectExpression(0,0,1,1)));
+	}
+	
+	private Parser<Expression.RectExpression> rectParser() {
+		return Parsers.sequence(Scanners.string("rect"), whiteSpaceInteger().times(4)).map(new org.codehaus.jparsec.functors.Map<List<Integer>, Expression.RectExpression>() {
+			@Override
+			public RectExpression map(List<Integer> from) {
+				return new Expression.RectExpression(from.get(0), from.get(1), from.get(2), from.get(3));
+			}
+		});
+	}
+	
+	
+	
+	
+	
+	// BLOCK
+	private Parser<List<Expression>> blockParser() {
+		return Parsers.between(
+				Scanners.string("do").followedBy(Scanners.WHITESPACES), 
+				expressionParser().many1(), 
+				Scanners.string("end").followedBy(Scanners.WHITESPACES));
+	}
+	
+	private Parser<Expression> expressionParser() {
+		return Parsers.or(rectParser(), translateParser(), rotateParser());
+	}
+	
+	public static void main(String[] args) {
+		Parser<List<List<Expression>>> parser = (new GeoParserFactory()).generate();
+		List<List<Expression>> geosheetDescription = parser.parse(example);
+		GeoSheet geosheet = new GeoSheet(geosheetDescription);
+		geosheet.show();
+	}
+
+	private Parser<List<List<Expression>>> generate() {
+		return blockParser().sepBy(Scanners.string("\n"));
+	}
+	
+	
+	
+	
+	private Parser<Expression> expressionParser() {
+		return Parsers.or(rectParser(), translateParser(), rotateParser());
+	}
+	
+	private Parser<List<Expression>> blockParser() {
+		return Parsers.between(
+				Scanners.string("do").next(Scanners.WHITESPACES), 
+				expressionParser().sepBy(Scanners.WHITESPACES), 
+				Scanners.WHITESPACES.many().next(Scanners.string("end")));
+	}
+	
+	public Parser<List<List<Expression>>> fileParser() {
+		return blockParser().sepBy(Scanners.WHITESPACES);
+	}
+	
+	public static void main(String args[]) {
+		(new GeoParserFactory()).fileParser().parse(example);
+	}

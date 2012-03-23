@@ -1,0 +1,49 @@
+\documentclass{beamer}
+\usepackage[utf8x]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{listings}
+\usepackage{ucs}
+\usetheme{CambridgeUS}
+\institute[Universität Bern]{
+  \inst{1}
+}
+\author{Aaron Karper}
+\title{JParsec}
+\date{\today}
+\begin{document}
+\frame{\titlepage}
+\frame{\frametitle{Contents}\tableofcontents}
+\section{What is JParsec?}
+\frame{\frametitle{What is Parsing?}
+\begin{itemize}
+  \item Converting a text into internal representation.
+  \item Usually more complex than RegEx.
+\end{itemize}
+}
+\frame{\frametitle{What is JParsec?}
+\begin{itemize}
+  \item A monadic parser combinator.
+  \item Fitted for a top-down approach to parsing.
+  \item Declarative, not imperative.
+\end{itemize}
+}
+\section{The Project}
+\frame{\frametitle{The Project}
+A turing machine description language
+\lstinputlisting{example.tm}
+}
+
+\section{Building the Parser}
+\frame{\frametitle{{\tt Parser<List<Expression>>}}
+A TM description is a bunch of expressions separated by {\tt newlines} 
+\lstset{language=Java, breaklines=true}
+\lstinputlisting{expparser.java}
+}
+\frame{\frametitle{{\tt .map} }
+In order to convert a {\tt Parser<A>} to {\tt Parser<B>}, you have to {\tt 
+.map} it with a {\tt Map<A,B>}.
+\lstset{language=Java, breaklines=true}
+\lstinputlisting{map1.java}
+}
+\end{document}
