@@ -1,1 +1,296 @@
-jparsec/jparsec.mdown
+# jParsec in a Nutshell
+
+Languages obviously play a central role in computing. We express our ideas and
+our algorithms in programming languages and all of them operate on data, that
+too is often in a kind of language. 
+
+So it comes to no surprise that processing of a language is an important task.
+Most people probably know RegEx (if not, read about them!), but most languages
+[can not be parsed this way](http://stackoverflow.com/a/1732454), so one comes
+to look for other tools.
+
+One such tool is [jParsec](jparsec.codehaus.org), which is a port of the
+excellent [Parsec](http://www.haskell.org/haskellwiki/Parsec) library for
+Java. In this article, I'll show a small example
+application ([full code](examples/TuringParser)).
+
+## What is jParsec?
+
+jParsec is basically a bunch of handy parsers that already know how to parse
+certain things (like identifiers for example). But if that was all, we could
+never build a new language to parse, so there are also ways to combinate them.
+Furthermore it is not only interesting to know, if a string is a valid program,
+but ideally, we'd like to have a handy representation of it too, so jParsec
+allows that as well.
+
+jParsec can
+
+- Parse common things like integers, identifiers (an alphanumeric name without
+  whitespaces in between), ...
+- Combine two or more parsers into a new one. For example, we could parse an
+  integer _or_ an identifier.
+- Process the parsed expressions to new types.
+
+## The Project
+
+So for fun, lets invent a programming language: the [Turing
+Machine](http://introcs.cs.princeton.edu/java/74turing/)! Ok, not exactly
+novel, but I have yet to see a file type for it...
+
+A Turing Machine description needs:
+
+- A start state
+- Some end states
+- and transitions that describe
+  - what is read
+  - what the current state is and infer
+  - what is written
+  - what the new state is.
+  - in what direction the head moves.
+
+So I propose the following:
+
+- `:` is used for tagging end states, for example `:end` designates an end state called "end"
+- `>` is used for tagging the start state, for example `>start` designates a start state called "start"
+- `=>` is used for tagging transitions. For example `a t1 => b t2 L` designates a transition that assumes that the machine is in
+  the state `a`, reads the character `t1` and then outputs `t2` and transfers
+  into the state `b`, moving the read/write-head to the left (`N` would say
+  that the head does not move and `R` would be right).
+- Every such expression is on a separate line.
+
+For example
+
+    >even
+    :evenEnd
+    :oddEnd
+    even o => odd o R
+    odd o  => even o R
+    even x => evenEnd x N
+    odd x  => oddEnd x N
+
+would be a turing machine that answers whether a tape has an even or odd
+number of "o" characters on it. We assume the "x" marks the end of the word.
+
+We could of course use RegEx to parse this, but where would be the fun in
+that?
+
+## Fun as in Functional
+
+An important thing to keep in mind in jParsec is that you *never* write a
+parser! All you can do is combining existing parsers. You could imagine that
+you don't program how to read a file, but instead generate an assembly line
+that takes a file and twists and turns it until it has the form you need.
+
+Another thing is, that `Parser`s have an output type. A
+`Parser<TuringMachine>` is a parser that takes a string and twists and turns
+it until it is a `TuringMachine`.
+
+## Building the Assembly Line
+
+So, how to go about this? Well, obviously we move through the file `char` by
+`char` and whenever we see a `'>'` we change to "start state mode" and store
+the next characters in an `identifierBuffer` and if we are not in any other
+mode and see an alphanumeric character like in an identifier we move to
+"transition mode" and... 
+
+*Stop right there!*
+
+Beginner programmers often start out thinking imperatively - do this, then do
+that - but I think sooner or later one has to find out that it is often much
+easier to start with a big problem and [break it down bit by bit][decomp].
+[decomp]: http://en.wikipedia.org/wiki/Decomposition_(computer_science)
+"Functional Decomposition"
+
+So we don't say what we do, but instead what we know. 
+
+We do know, that a turing machine is just a parsed text.
+
+    public static void main(String[] args) {
+		Parser<TuringMachine> parser = generate();
+		TuringMachine tm = parser.parse(example);
+    	tm.run();
+    	System.out.println(tm);
+    }
+
+We do also know, that a complete turing machine description has a list
+expressions separated by newlines.
+
+	Parser<List<Expression>> expParser = expression()
+    			.sepBy(Scanners.string("\n"));
+
+here
+
+- `expression()` will be a parser for a single expression, but I didn't write
+  it yet, but ignore that for a while.
+- `expression().sepBy(...)` means that we get a bunch of expressions separated
+  by `...`
+- `Scanners.string("\n")` matches the literal newline.
+
+combine that and you have "some expressions (as defined in `expression()`)
+separated by the literal newline".
+
+## Interpreting Results
+Now the problem is that we have a `Parser<List<Expression>>` and not a
+`Parser<TuringMachine>` - we would say we have a machine that turns a string
+into a bunch of `Expression`s, but we did not combine them to a turing machine
+yet. 
+
+*To transform `Parser<A>` to `Parser<B>` one needs `.map(...)`*
+
+In our case we need to *map* a `List<Expression>` to a `TuringMachine`. Assume
+we wrote a method `TuringMachine compileTuringMachine(List<Expression> exps)`
+(this is not really point of this article, now is it?), we could do
+
+    Parser<TuringMachine> turingparser = expParser.map(new org.codehaus.jparsec.functors.Map<List<Expression>, TuringMachine>() {
+    		public TuringMachine map(List<Expression> arg0) {
+    			try {
+    				return compileTuringMachine(arg0);
+    			} catch (ParsingError e) {
+    				System.err.println("Parse error");
+    				return null;
+    			}
+    		}});
+
+This looks difficult, but it just uses an [anonymous inner class](http://www.tek-tips.com/faqs.cfm?fid=1849) to transform the list.
+
+What is `org.codehaus.jparsec.functors.Map<List<Expression>, TuringMachine>`?
+It is jParsec's way to say "here comes a function that converts
+`List<Expression>` to `TuringMachine`s. 
+
+*In your own `Map<A,B>` you have to write a method `B map(A)`, and you have
+`Parser<B> = Parser<A>.map(Map<A,B>)`.*
+
+You will need this a lot, so be sure you understand this. On the other hand,
+this also means, that there are lots of other examples of `map` later on.
+
+## All Expressions are not alike
+
+Until now, we delayed to think about what `expression()` is. An expression is
+either
+
+- an end state
+- a start state
+- or a transition
+
+We could of course make the difference in the `map` function, but that would
+be more than annoying, we'd much rather have some way to express that "either...or..."
+
+Here is where the combinators of jParsec come into play, namely the
+`Parsers.or` combinator. The informal description directly translates to
+
+    private static Parser<Expression> expression() {
+    	return Parsers.or(endstate(), startstate(), transition());
+    }
+ 
+When parsing, you will get the result of the first parser that can act on
+your string.
+
+Question now is, how do we parse an `endstate()`? It's quite easy, we *first
+have a ":", then we have an identifier*. In jParsec, there is the combinator
+`sequence` which returns the result of the *last* working parser, but only,
+after the others did their job (this means, that their result is ignored in
+terms of return value, but they are necessary to match the string).
+
+    private static Parser<Endstate> endstate() {
+    	return Parsers
+    			.sequence(Scanners.isChar(':'), Scanners.IDENTIFIER)
+    			.map(new org.codehaus.jparsec.functors.Map<String, Endstate>() {
+    		public Endstate map(String arg0) {
+    			return new Endstate(arg0);
+    		}
+    	});
+    }
+
+So first we need to match `Scanners.isChar(':')` and *only if that worked*, we
+read and return the `Scanners.IDENTIFIER`. It should not surprise you, that we
+need another `map` here: `Scanners.IDENTIFIER` is a `Parser<String>`, but we
+need a `Parser<Endstate>`, so we `map` `String` to `Endstate`.
+
+As an exercise, you can implement the `startstate()` method yourself.
+
+## The case of `transition()`
+
+Transition is a bit more difficult, because we have something like `a b => c d
+L` and need to remember `a`, `b`, `c`, `d`, and the direction as well. Again,
+let us split it up a little. On the left hand site, we basically have the
+current state of the read head and on the right side we have the output. In
+the middle we have whitespaces and `"=>"`.
+
+So lets first take a look at `readhead()`, which defines the lefthand side of
+the transition (in the example it would be `a b`).
+
+*In jParsec, you can use `Parsers.tuple(...)` to remember the return values of
+all subparsers.*
+
+It will also be important to acknowledge the whitespaces between the names,
+so...
+
+*The `Parser<A>.many()` method gives a list of many matches of `Parser<A>`
+(possibly none at all), `Parser<A>.many1()` ensures, that `Parser<A>` has
+matched at least once.*
+
+    private static Parser<ReadHead> readhead() {
+    	return Parsers
+    			.tuple(Scanners.IDENTIFIER, Scanners.WHITESPACES.many1(), Scanners.IDENTIFIER)
+    			.map(new org.codehaus.jparsec.functors.Map<Tuple3<String, List<Void>, String>, ReadHead>() {
+    				public ReadHead map(Tuple3<String, List<Void>, String> arg0) {
+    					return new ReadHead(arg0.a, arg0.c);
+    				}
+    			});
+    }
+
+Lets read that: "a readhead is an identifier, then some whitespaces (at least
+one), and then another identifier". Here I used tuple, but also caught the
+whitespaces in the middle. You notice, that they give a `List<Void>`, so
+basically nothing at all. The different parts of the match in `Tuple[N]` are
+called `.a`, `.b`, ..., so `ReadHead(arg0.a, arg0.c)` means "take the first
+and third match, ignore the middle (which is whitespaces anyway).
+
+Now it should come as little surprise, that we can implement `transition()` by
+
+
+    private static Parser<Transition> transition() {
+    	return Parsers.tuple(
+    				readhead(),
+    				Scanners.WHITESPACES.many1(), 
+    				Scanners.string("=>"),
+    				Scanners.WHITESPACES.many1(), 
+    				output())
+    			.map(new org.codehaus.jparsec.functors.Map<Tuple5<ReadHead, List<Void>,Void,List<Void>, Output>, Transition>() {
+    		public Transition map(Tuple5<ReadHead, List<Void>,Void,List<Void>, Output> arg0) {
+    			return new Transition(arg0.a, arg0.e);
+    		}
+    	});
+    }
+
+except maybe that `Scanners.string` does not return anything.
+
+You can try to write the `output()` yourself.
+
+## Summary
+
+You can use primitive parsers such as
+
+- `Scanner.IDENTIFIER`
+- `Scanner.WHITESPACES`
+- `Scanner.INTEGER`
+- ...
+
+to parse common things.
+
+You can combine Parsers by
+
+- `Parsers.or`
+- `Parsers.sequence`
+- `Parsers.tuple`
+
+or extend a single parser with
+
+- `Parser<A>.many()`
+
+You can transform
+
+- a `Parser<A>` to `Parser<B>` by `Parser<A>.map(new Map<A,B>() { /* transform an A to a B */ })`
+
+The full code is
+[here](examples/TuringParser/src/com/zombiecalypse/TuringParser/TuringParser.java)
