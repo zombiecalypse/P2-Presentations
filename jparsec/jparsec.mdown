@@ -9,7 +9,7 @@ Most people probably know RegEx (if not, read about them!), but most languages
 [can not be parsed this way](http://stackoverflow.com/a/1732454), so one comes
 to look for other tools.
 
-One such tool is [jParsec](jparsec.codehaus.org), which is a port of the
+One such tool is [jParsec](http://jparsec.codehaus.org), which is a port of the
 excellent [Parsec](http://www.haskell.org/haskellwiki/Parsec) library for
 Java. In this article, I'll show a small example
 application ([full code](examples/TuringParser)).
