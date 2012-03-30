@@ -1,14 +1,48 @@
 package com.zombiecalypse.geoparser;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Expression {
+	public static class BlockExpression extends Expression {
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result
+					+ ((expressions == null) ? 0 : expressions.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			BlockExpression other = (BlockExpression) obj;
+			if (expressions == null) {
+				if (other.expressions != null)
+					return false;
+			} else if (!expressions.equals(other.expressions))
+				return false;
+			return true;
+		}
+
+		public BlockExpression(List<Expression> expressions) {
+			super();
+			this.expressions = expressions;
+		}
+
+		List<Expression> expressions = new ArrayList<Expression>();
+		
+		
+	}
 	
 	public static class RotateExpression extends Expression {
 		
-		@Override
-		public String toString() {
-			return "RotateExpression [angle=" + angle + "]";
-		}
-
 		@Override
 		public int hashCode() {
 			final int prime = 31;
@@ -29,6 +63,11 @@ public class Expression {
 			if (angle != other.angle)
 				return false;
 			return true;
+		}
+
+		@Override
+		public String toString() {
+			return "RotateExpression [angle=" + angle + "]";
 		}
 
 		private int angle;
