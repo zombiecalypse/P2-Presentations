@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.inject.name.Named;
 import com.zombiecalypse.downloadsorter.rules.Rule;
 
 public class DownloadSorter {
@@ -16,30 +17,40 @@ public class DownloadSorter {
 			return arg1.priority().compareTo(arg0.priority());
 		}};
 	
-	private IFileSystem fs;
-	private Logger logger;
-	private SortedSet<Rule> rules;
+	private final IFileSystem fs;
+	private final Logger logger;
+	private final SortedSet<Rule> rules;
+	private final String downloadFolder;
+	
 	
 	public static void main(String[] args) {
 		Injector injector = Guice.createInjector(new WorkModule());
 		DownloadSorter sorter = injector.getInstance(DownloadSorter.class);
 		
-		String[] paths = {"a.txt", "b.pdf"};
-		for (String folder : paths) {
-			sorter.moveToLibrary(folder);
-		}
+		sorter.cleanup();
 	}
 	
 	@Inject
-	public DownloadSorter(IFileSystem fs, Logger logger, @RulesInjection Collection<Rule> rules) {
+	public DownloadSorter(IFileSystem fs, Logger logger, 
+			@Named("rules") Collection<Rule> rules, 
+			@Named("downloadFolder") String downloadFolder) {
 		this.fs = fs;
 		this.logger = logger;
 		this.rules = new TreeSet<Rule>(byPriority);
 		this.rules.addAll(rules);
+		this.downloadFolder = downloadFolder;
 	}
 
-	public void moveToLibrary(String path) {
+	/**
+	 * Moves to specialized Library or possibly leave file in place.
+	 * @param path of file to be moved to library relative to download folder
+	 */
+	void moveToLibrary(String path) {
 		String outputPath = findMatching(path);
+		
+		String fullpath = (downloadFolder+path);
+
+		if (fullpath.equals(outputPath)) return;
 		
 		if (outputPath == null) {
 			logger.warning("No rule for " + path + "found.");
@@ -47,7 +58,13 @@ public class DownloadSorter {
 		}
 		
 		logger.info("Moving "+path+" => " + outputPath);
-		fs.move(path, outputPath);
+		fs.move(fullpath, outputPath);
+	}
+	
+	public void cleanup() {
+		for (String path : fs.list(downloadFolder)) {
+			moveToLibrary(path);
+		}
 	}
 
 	/**

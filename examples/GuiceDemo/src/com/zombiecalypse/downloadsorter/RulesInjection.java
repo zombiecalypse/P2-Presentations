@@ -1,10 +1,10 @@
 package com.zombiecalypse.downloadsorter;
 
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
 import java.lang.annotation.Retention;
 
 import com.google.inject.BindingAnnotation;
-
-import static java.lang.annotation.RetentionPolicy.*;
 
 @BindingAnnotation
 @Retention(RUNTIME)
